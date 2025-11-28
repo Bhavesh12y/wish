@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Happy Birthday! 🎉</title>
+    <title>Happy Birthday Niviiii! 🎉</title>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Permanent+Marker&family=Patrick+Hand&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -11,9 +11,10 @@
     <style>
         :root {
             --paper-color: #fdfbf7;
-            --bg-color: #f3e5d8;
-            --accent-color: #e53e3e;
+            --bg-color: #fff1e6; /* Slightly warmer */
+            --accent-color: #ff6b6b;
             --text-color: #2d3748;
+            --secondary-accent: #4ecdc4;
         }
 
         body {
@@ -26,14 +27,27 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- BACKGROUND --- */
+        /* --- BACKGROUND & ANIMATIONS --- */
         #bg-doodle-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; pointer-events: none; opacity: 0.6;
+            z-index: 0; pointer-events: none; opacity: 0.5;
         }
         .bg-doodle {
-            position: absolute; opacity: 0.8;
+            position: absolute; opacity: 0.6;
             filter: sepia(0.3) contrast(0.9);
+            /* Animation applied in JS for randomness */
+        }
+
+        @keyframes float-anim {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes drift-anim {
+            0% { transform: translateX(0px) translateY(0px); }
+            50% { transform: translateX(20px) translateY(20px); }
+            100% { transform: translateX(0px) translateY(0px); }
         }
 
         /* --- DESK VIEW --- */
@@ -53,10 +67,11 @@
             cursor: grab; transform-style: preserve-3d;
             transition: transform 0.1s ease-out;
             touch-action: none;
-            animation: float 6s ease-in-out infinite;
+            animation: floatCard 6s ease-in-out infinite;
         }
         .card-container:active { cursor: grabbing; animation: none; }
-        @keyframes float {
+        
+        @keyframes floatCard {
             0%, 100% { transform: translateY(0px) rotateX(0deg) rotateY(4deg); }
             50% { transform: translateY(-15px) rotateX(2deg) rotateY(-4deg); }
         }
@@ -83,7 +98,7 @@
         .photo-frame img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         .card-back {
             transform: rotateY(180deg);
-            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            background: linear-gradient(135deg, #ffe29f 0%, #ffa99f 100%);
             padding: 20px;
         }
         .handwritten-note {
@@ -94,7 +109,7 @@
         .tape {
             position: absolute; height: 35px; width: 100px;
             top: -15px; left: 50%; transform: translateX(-50%) rotate(-3deg);
-            background-color: rgba(255,255,255,0.3); backdrop-filter: blur(4px);
+            background-color: rgba(255,255,255,0.4); backdrop-filter: blur(4px);
             z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
@@ -105,14 +120,33 @@
             transition: opacity 0.6s ease;
             background-color: #fdfbf7;
             background-image: radial-gradient(#d1d5db 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-size: 25px 25px;
         }
         #journey-view.active { opacity: 1; pointer-events: auto; }
+
+        /* "HUMARI KAHANI" Background Text */
+        #story-bg-text {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-5deg);
+            font-family: 'Permanent Marker', cursive;
+            font-size: 12vw;
+            color: var(--accent-color);
+            opacity: 0;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 1s ease 0.5s;
+        }
+        #journey-view.active #story-bg-text {
+            opacity: 0.08; /* Very subtle watermark */
+        }
 
         .map-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             overflow: auto; scroll-behavior: smooth;
             -webkit-overflow-scrolling: touch; scrollbar-width: none;
+            z-index: 5;
         }
         .map-container::-webkit-scrollbar { display: none; }
 
@@ -127,7 +161,7 @@
         svg.path-svg {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 900px; height: 800px; /* ViewBox Size */
+            width: 900px; height: 800px;
             overflow: visible; z-index: 51;
         }
         path#walk-path {
@@ -168,6 +202,7 @@
             transform: translate(-50%, -80%) scale(0.9);
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             transform-origin: bottom center;
+            border: 2px solid var(--text-color);
         }
         #story-bubble.visible {
             opacity: 1; pointer-events: auto;
@@ -177,7 +212,14 @@
             content: ''; position: absolute;
             bottom: -10px; left: 50%; transform: translateX(-50%);
             border-width: 10px 10px 0; border-style: solid;
+            border-color: var(--text-color) transparent transparent transparent;
+        }
+        #story-bubble::before {
+             content: ''; position: absolute;
+            bottom: -7px; left: 50%; transform: translateX(-50%);
+            border-width: 10px 10px 0; border-style: solid;
             border-color: white transparent transparent transparent;
+            z-index: 1;
         }
         #story-bubble img {
             width: 100%; max-height: 200px; object-fit: cover;
@@ -195,8 +237,10 @@
             background: var(--accent-color); color: white;
             border: none; padding: 8px 16px; border-radius: 20px;
             font-family: 'Permanent Marker', cursive; cursor: pointer;
+            transition: transform 0.1s;
         }
-        .nav-btn:disabled { background: #cbd5e0; cursor: default; }
+        .nav-btn:active { transform: scale(0.9); }
+        .nav-btn:disabled { background: #cbd5e0; cursor: default; transform: none; }
 
         /* --- UI OVERLAY --- */
         .ui-layer {
@@ -204,40 +248,61 @@
             pointer-events: none;
         }
         .header-title {
-            position: absolute; top: 20px; left: 20px;
-            font-family: 'Permanent Marker', cursive; font-size: 3rem;
-            color: var(--accent-color); text-shadow: 3px 3px 0px #fff;
+            position: absolute; top: 20px; width: 100%; text-align: center;
+            font-family: 'Permanent Marker', cursive; font-size: 3.5rem;
+            color: var(--accent-color); 
+            text-shadow: 4px 4px 0px #fff, 6px 6px 0px rgba(0,0,0,0.1);
             pointer-events: auto;
+            animation: bounceIn 1s ease;
         }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .toggle-btn-container {
             position: absolute; bottom: 30px; width: 100%;
             display: flex; justify-content: center; pointer-events: auto;
         }
         .toggle-btn {
             background: white; border: 3px solid var(--accent-color);
-            color: var(--accent-color); padding: 12px 35px;
+            color: var(--accent-color); padding: 15px 40px;
             border-radius: 50px; font-family: 'Permanent Marker', cursive;
-            font-size: 1.3rem; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transition: transform 0.2s;
+            font-size: 1.5rem; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulseBtn 2s infinite;
         }
-        .toggle-btn:hover { transform: translateY(-3px); background: var(--accent-color); color: white; }
+        @keyframes pulseBtn {
+            0% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(229, 62, 62, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 62, 62, 0); }
+        }
+        .toggle-btn:hover { 
+            transform: translateY(-5px) scale(1.05); 
+            background: var(--accent-color); color: white; 
+        }
+
         .instructions {
             position: absolute; bottom: 100px; width: 100%;
-            text-align: center; opacity: 0.8; font-size: 1.1rem;
+            text-align: center; opacity: 0.8; font-size: 1.2rem;
             text-shadow: 0 1px 2px white; transition: opacity 0.3s;
+            color: #555;
         }
 
         /* --- MOBILE TWEAKS --- */
         @media (max-width: 600px) {
-            .header-title { font-size: 2rem; top: 15px; left: 15px; }
+            .header-title { font-size: 2.5rem; text-align: center; left: 0; top: 15px; }
             .card-container { width: 150px; height: 190px; }
-            .toggle-btn { padding: 10px 25px; font-size: 1.1rem; }
+            .toggle-btn { padding: 12px 30px; font-size: 1.2rem; }
             #story-bubble { width: 85vw; padding: 12px; }
             #story-bubble img { max-height: 150px; }
             #story-content { font-size: 0.95rem; }
             .map-canvas { width: 1200px; height: 1000px; }
             svg.path-svg { width: 800px; height: 700px; }
+            #story-bg-text { font-size: 18vw; }
         }
     </style>
 </head>
@@ -246,16 +311,18 @@
     <div id="bg-doodle-layer"></div>
 
     <div class="ui-layer">
-        <div class="header-title">Happy Birthday!</div>
+        <div class="header-title">HAPPY BIRTHDAY NIVIIII 🎈</div>
         <div class="instructions" id="desk-instr">✨ Drag photos • Double-click to flip ✨</div>
         <div class="toggle-btn-container">
-            <button class="toggle-btn" onclick="toggleView()" id="main-btn">Start Journey 🗺️</button>
+            <button class="toggle-btn" onclick="toggleView()" id="main-btn">Humari Kahani 🗺️</button>
         </div>
     </div>
 
     <div id="desk"></div>
 
     <div id="journey-view">
+        <div id="story-bg-text">HUMARI KAHANIII</div>
+        
         <div class="map-container" id="map-container">
             <div class="map-canvas">
                 <svg class="path-svg" viewBox="0 0 900 800" preserveAspectRatio="xMidYMid meet">
@@ -283,8 +350,9 @@
     </div>
 
     <script>
+        // --- CONFIGURATION ---
         const memories = [
-            { img: "1.png", note: "HARRY KI DIWALI" },
+            { img: "1.png", note: "HARRY KI DIWANI" },
             { img: "2.png", note: "K-DRAMA SPOILER" },
             { img: "3.png", note: "MEMORIES..." },
             { img: "4.png", note: "SMILES" },
@@ -301,11 +369,16 @@
         ];
 
         const doodles = [
-            "https://img.icons8.com/doodle/96/wizard-hat.png",
-            "https://img.icons8.com/doodle/96/magic-wand.png",
-            "https://img.icons8.com/doodle/96/south-korea.png",
-            "https://img.icons8.com/doodle/96/noodles.png",
-            "https://img.icons8.com/doodle/96/sailing-ship-large.png"
+            "harry.png",
+            
+            "lufy.png",
+            "gift.png",
+            "gifft.png",
+           "harry.png",
+           
+            "lufy.png",
+            "gift.png",
+            "gifft.png",
         ];
 
         let currentStep = 0;
@@ -316,19 +389,25 @@
             initBackground();
             initDesk();
             initJourneyMap();
-            setTimeout(doConfetti, 1000);
+            setTimeout(triggerFireworks, 500); // Initial fireworks
         };
 
         function initBackground() {
             const container = document.getElementById('bg-doodle-layer');
-            for(let i=0; i<20; i++) {
+            for(let i=0; i<25; i++) {
                 const img = document.createElement('img');
                 img.src = doodles[i % doodles.length];
                 img.className = 'bg-doodle';
                 img.style.left = Math.random()*100 + 'vw';
                 img.style.top = Math.random()*100 + 'vh';
-                img.style.transform = `rotate(${Math.random()*360}deg)`;
-                img.style.width = (40 + Math.random()*40) + 'px';
+                img.style.width = (40 + Math.random()*50) + 'px';
+                
+                // Randomize animations
+                const animType = Math.random() > 0.5 ? 'float-anim' : 'drift-anim';
+                const duration = 5 + Math.random() * 10;
+                const delay = Math.random() * 5;
+                img.style.animation = `${animType} ${duration}s ease-in-out infinite ${delay}s alternate`;
+                
                 container.appendChild(img);
             }
         }
@@ -397,6 +476,9 @@
             const btn = document.getElementById('main-btn');
             const instr = document.getElementById('desk-instr');
             isJourneyActive = !isJourneyActive;
+            
+            triggerFireworks(); // Fireworks on transition
+
             if(isJourneyActive) {
                 desk.classList.add('inactive');
                 journey.classList.add('active');
@@ -411,13 +493,35 @@
             }
         }
 
+        // --- FIREWORKS LOGIC ---
+        function triggerFireworks() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999 };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                var particleCount = 50 * (timeLeft / duration);
+                // since particles fall down, start a bit higher than random
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        function randomInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
         function initJourneyMap() {
             const path = document.getElementById('walk-path');
             const layer = document.getElementById('milestones-layer');
             const len = path.getTotalLength();
             const canvas = document.querySelector('.map-canvas');
-            
-            // Adjust offsets based on the SVG viewBox size (900x800)
             const offsetX = 450; 
             const offsetY = 400;
 
@@ -436,6 +540,8 @@
             if(next >= 0 && next < journeyData.length) {
                 currentStep = next;
                 updateJourneyState(currentStep);
+                // Small confetti burst on step change
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
             }
         }
 
@@ -448,19 +554,15 @@
 
             const len = path.getTotalLength();
             const pt = path.getPointAtLength((index / (journeyData.length - 1)) * len);
-            
             const offsetX = 450; 
             const offsetY = 400;
-
             const xPos = `calc(50% - ${offsetX}px + ${pt.x}px)`;
             const yPos = `calc(50% - ${offsetY}px + ${pt.y}px)`;
             
             token.style.left = xPos;
             token.style.top = yPos;
-
             bubble.classList.remove('visible');
 
-            // --- AUTO SCROLL ---
             setTimeout(() => {
                 const canvasW = canvas.offsetWidth;
                 const canvasH = canvas.offsetHeight;
@@ -470,10 +572,7 @@
                 const charRelY = pt.y - offsetY;
                 const charAbsX = centerX + charRelX;
                 const charAbsY = centerY + charRelY;
-
-                // Center camera slightly ABOVE character
                 const targetY = charAbsY - 150; 
-
                 const viewportW = mapContainer.clientWidth;
                 const viewportH = mapContainer.clientHeight;
 
@@ -485,22 +584,18 @@
             }, 100);
 
             setTimeout(() => {
-                // Position Bubble 70px above character
                 bubble.style.left = xPos;
                 bubble.style.top = `calc(${yPos} - 70px)`; 
-                
                 const data = journeyData[index];
                 document.getElementById('bubble-img').src = data.img;
                 document.getElementById('story-content').innerHTML = data.text;
                 document.getElementById('step-count').innerText = `${index + 1} / ${journeyData.length}`;
                 document.getElementById('btn-prev').disabled = (index === 0);
                 document.getElementById('btn-next').disabled = (index === journeyData.length - 1);
-                
                 bubble.classList.add('visible');
             }, 3000);
         }
 
-        function doConfetti() { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
         function doMiniConfetti(el) {
             const rect = el.getBoundingClientRect();
             const x = (rect.left + rect.width/2) / window.innerWidth;
