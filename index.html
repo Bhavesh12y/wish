@@ -2,902 +2,530 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Happy Birthday! 🎉</title>
-    <!-- Google Fonts for the scrapbook feel -->
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Permanent+Marker&display=swap" rel="stylesheet">
-    <!-- Tailwind CSS for utility -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Permanent+Marker&family=Patrick+Hand&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <style>
         :root {
             --paper-color: #fdfbf7;
-            --shadow-color: rgba(0, 0, 0, 0.2);
+            --bg-color: #f3e5d8;
             --accent-color: #e53e3e;
-            --btn-hover: #c53030;
+            --text-color: #2d3748;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #f3e5d8; /* Slightly darker paper for doodles to pop */
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
             overflow: hidden;
             font-family: 'Indie Flower', cursive;
             user-select: none;
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- BACKGROUND DOODLES LAYER --- */
+        /* --- BACKGROUND --- */
         #bg-doodle-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0; /* Behind everything */
-            pointer-events: none;
-            opacity: 0.6; /* Subtle effect */
-            overflow: hidden;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none; opacity: 0.6;
         }
-
         .bg-doodle {
-            position: absolute;
-            opacity: 0.8;
-            filter: sepia(0.3) contrast(0.9); /* Make them look slightly sketched/vintage */
+            position: absolute; opacity: 0.8;
+            filter: sepia(0.3) contrast(0.9);
         }
 
-        /* --- DESK VIEW (Scrapbook) --- */
+        /* --- DESK VIEW --- */
         #desk {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             perspective: 1500px;
             transition: opacity 0.5s ease, transform 0.5s ease;
             z-index: 10;
-            transform-origin: center bottom;
         }
-
         #desk.inactive {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.95);
+            opacity: 0; pointer-events: none;
+            transform: scale(0.90) translateY(50px);
         }
 
-        /* 3D Card Styling */
         .card-container {
-            position: absolute;
-            width: 240px;
-            height: 280px;
-            cursor: grab;
-            transform-style: preserve-3d;
-            transition: transform 0.1s ease-out, box-shadow 0.3s;
+            position: absolute; width: 220px; height: 260px;
+            cursor: grab; transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
             touch-action: none;
-            /* Slower, gentler float animation */
             animation: float 6s ease-in-out infinite;
         }
-
-        .card-container:active {
-            cursor: grabbing;
-            animation: none;
-        }
-
+        .card-container:active { cursor: grabbing; animation: none; }
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotateX(0deg) rotateY(4deg); }
-            50% { transform: translateY(-24px) rotateX(2deg) rotateY(-4deg); }
+            50% { transform: translateY(-15px) rotateX(2deg) rotateY(-4deg); }
         }
 
         .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; width: 100%; height: 100%;
+            text-align: center; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
         }
-
-        .card-container.flipped .card-inner {
-            transform: rotateY(180deg);
-        }
+        .card-container.flipped .card-inner { transform: rotateY(180deg); }
 
         .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 8px;
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 12px;
             background-color: var(--paper-color);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: flex; justify-content: center; align-items: center;
         }
-
-        .card-front { 
-            z-index: 2;
-            padding: 0;
-        }
-
+        .card-front { padding: 10px; box-sizing: border-box; }
         .photo-frame {
-            width: 100%;
-            height: 100%;
-            background-color: #eee;
-            overflow: hidden;
-            border: none;
-            position: relative;
-            border-radius: 8px;
+            width: 100%; height: 100%; background-color: #f0f0f0;
+            overflow: hidden; border-radius: 8px;
         }
-
-        .photo-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            pointer-events: none;
-        }
-
-        .caption {
-            margin-top: 15px;
-            font-family: 'Permanent Marker', cursive;
-            font-size: 1.2rem;
-            color: #333;
-            transform: rotate(-2deg);
-            display: none;
-        }
-
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
         .card-back {
             transform: rotateY(180deg);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            padding: 20px;
         }
-
         .handwritten-note {
-            font-family: 'Caveat', cursive;
-            font-size: 2rem;
-            color: white;
-            transform: rotate(0deg);
+            font-family: 'Caveat', cursive; font-size: 1.8rem;
+            color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            line-height: 1.2;
         }
-
         .tape {
-            position: absolute;
-            height: 30px;
-            width: 90px;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%) rotate(-2deg);
-            background-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            z-index: 10;
-            backdrop-filter: blur(2px);
-            border-left: 2px dashed rgba(0,0,0,0.05);
-            border-right: 2px dashed rgba(0,0,0,0.05);
+            position: absolute; height: 35px; width: 100px;
+            top: -15px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+            background-color: rgba(255,255,255,0.3); backdrop-filter: blur(4px);
+            z-index: 5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .tape.color-1 { background-color: rgba(255, 99, 71, 0.5); }
-        .tape.color-2 { background-color: rgba(60, 179, 113, 0.5); }
-        .tape.color-3 { background-color: rgba(100, 149, 237, 0.5); }
-        .tape.color-4 { background-color: rgba(255, 215, 0, 0.5); }
 
-        /* --- JOURNEY VIEW (Timeline) --- */
+        /* --- JOURNEY VIEW --- */
         #journey-view {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 5;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(234, 221, 207, 0.95);
-            overflow: hidden;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 50; opacity: 0; pointer-events: none;
+            transition: opacity 0.6s ease;
+            background-color: #fdfbf7;
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-
-        #journey-view.active {
-            opacity: 1;
-            pointer-events: auto;
-            z-index: 20;
-        }
+        #journey-view.active { opacity: 1; pointer-events: auto; }
 
         .map-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            overflow: auto; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+        }
+        .map-container::-webkit-scrollbar { display: none; }
+
+        /* Canvas size determines scroll area */
+        .map-canvas {
             position: relative;
-            width: 90%;
-            height: 80%;
-            max-width: 900px;
-            overflow: auto; /* allow panning/scrolling when token goes out of view */
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
-            /* Hide scrollbars while preserving scrollability */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE 10+ */
+            min-width: 100vw; min-height: 100vh;
+            /* Extra padding to ensure we can scroll everywhere */
+            width: 1500px; height: 1200px; 
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .map-container::-webkit-scrollbar {
-            display: none; /* Safari and Chrome */
-            width: 0; height: 0;
-        }
-
+        /* SVG Path Layer */
         svg.path-svg {
-            width: 100%;
-            height: 100%;
-            overflow: visible;
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 900px; height: 800px; /* Matched to viewBox */
+            overflow: visible; z-index: 51;
         }
-
         path#walk-path {
-            fill: none;
-            stroke: #999;
-            stroke-width: 6;
-            stroke-dasharray: 15, 10;
-            stroke-linecap: round;
-            opacity: 0.6;
+            fill: none; stroke: #cbd5e0; stroke-width: 8;
+            stroke-dasharray: 20, 15; stroke-linecap: round;
         }
 
-        /* Animated Character */
+        /* Character */
         #character-token {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            top: 0;
-            left: 0;
-            transform: translate(-50%, -50%);
-            z-index: 30;
-            /* Slower character movement so token eases into milestones */
-            transition: left 5s linear, top 5s linear;
-            pointer-events: none;
+            position: absolute; width: 90px; height: 90px;
+            z-index: 60; pointer-events: none;
+            transition: top 4s linear, left 4s linear;
         }
-
         #character-token img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            /* Drop shadow to make it pop */
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.3));
         }
 
+        /* Milestones */
         .milestone-dot {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background: var(--accent-color);
-            border-radius: 50%;
+            position: absolute; width: 20px; height: 20px;
+            background: var(--accent-color); border-radius: 50%;
             transform: translate(-50%, -50%);
-            border: 4px solid white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            z-index: 10;
+            border: 4px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 52;
         }
 
-    /* Journey View must fly above the desk */
-#journey-view.active {
-    opacity: 1;
-    pointer-events: auto;
-    z-index: 1000 !important;   /* <-- FIX */
-}
-
-/* Story bubble must stay above EVERYTHING */
-#story-bubble {
-    position: absolute;
-    width: 220px;
-    max-height: 350px;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    font-family: 'Indie Flower', cursive;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 2000 !important;  /* <-- FIX */
-    text-align: center;
-
-    overflow-y: auto;
-    scrollbar-width: none;
-    transform: translateX(-50%) translateY(-100%) scale(0.9);
-    transform-origin: bottom center;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-#story-bubble::-webkit-scrollbar {
-    display: none;
-}
-
-#story-bubble.visible {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateX(-50%) translateY(-100%) scale(1);
-}
-
-#story-bubble::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 8px 8px 0;
-    border-style: solid;
-    border-color: white transparent transparent transparent;
-}
-
-#story-bubble h3 {
-    margin: 0 0 8px 0;
-    font-family: 'Permanent Marker', cursive;
-    color: var(--accent-color);
-    font-size: 1.4rem;
-}
-
-#story-bubble p,
-#story-bubble span {
-    font-size: 0.9rem;
-    color: #4a5568;
-    line-height: 1.3;
-}
-
-
-
-        /* Navigation Buttons */
-        .nav-controls {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            border-top: 1px dashed #ddd;
-            padding-top: 12px;
+        /* --- STORY BUBBLE --- */
+        #story-bubble {
+            position: absolute;
+            width: 300px; max-width: 90vw;
+            background: white; padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            font-family: 'Patrick Hand', cursive;
+            z-index: 70; text-align: center;
+            opacity: 0; pointer-events: none;
+            /* Start slightly lower for animation */
+            transform: translate(-50%, -80%) scale(0.9);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: bottom center;
         }
-
+        #story-bubble.visible {
+            opacity: 1; pointer-events: auto;
+            /* Translate -100% Y anchors the bottom of bubble to the top of character */
+            transform: translate(-50%, -100%) scale(1);
+        }
+        /* Arrow */
+        #story-bubble::after {
+            content: ''; position: absolute;
+            bottom: -10px; left: 50%; transform: translateX(-50%);
+            border-width: 10px 10px 0; border-style: solid;
+            border-color: white transparent transparent transparent;
+        }
+        #story-bubble img {
+            width: 100%; max-height: 200px; object-fit: cover;
+            border-radius: 8px; margin-bottom: 10px;
+        }
+        #story-content {
+            font-size: 1.1rem; color: var(--text-color);
+            line-height: 1.4; margin-bottom: 12px;
+        }
+        .bubble-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 10px; padding-top: 10px; border-top: 2px dashed #eee;
+        }
         .nav-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-family: 'Permanent Marker', cursive;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            background: var(--accent-color); color: white;
+            border: none; padding: 8px 16px; border-radius: 20px;
+            font-family: 'Permanent Marker', cursive; cursor: pointer;
         }
-        
-        .nav-btn:hover:not(:disabled) {
-            background-color: var(--btn-hover);
-            transform: scale(1.05);
-        }
+        .nav-btn:disabled { background: #cbd5e0; cursor: default; }
 
-        .nav-btn:disabled {
-            background-color: #cbd5e0;
-            cursor: not-allowed;
-            opacity: 0.7;
-            transform: none;
+        /* --- UI OVERLAY --- */
+        .ui-layer {
+            position: fixed; z-index: 100; width: 100%; height: 100%;
+            pointer-events: none;
         }
-
-        /* Main View Toggle Button (Bottom) */
-        .view-toggle-container {
-            position: fixed;
-            bottom: 30px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 100;
-            pointer-events: none; /* Let clicks pass through container */
-        }
-
-        .view-toggle {
+        .header-title {
+            position: absolute; top: 20px; left: 20px;
+            font-family: 'Permanent Marker', cursive; font-size: 3rem;
+            color: var(--accent-color); text-shadow: 3px 3px 0px #fff;
             pointer-events: auto;
-            background: white;
-            border: 3px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-family: 'Permanent Marker', cursive;
-            font-size: 1.2rem;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.2s ease;
         }
-
-        .view-toggle:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 10px rgba(0,0,0,0.15);
-            background-color: var(--accent-color);
-            color: white;
+        .toggle-btn-container {
+            position: absolute; bottom: 30px; width: 100%;
+            display: flex; justify-content: center; pointer-events: auto;
         }
-
-        /* Headers & Instructions */
-        .title-header {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            font-family: 'Permanent Marker', cursive;
-            font-size: 3rem;
-            color: var(--accent-color);
-            text-shadow: 2px 2px 0px #fff;
-            z-index: 100;
-            pointer-events: none;
+        .toggle-btn {
+            background: white; border: 3px solid var(--accent-color);
+            color: var(--accent-color); padding: 12px 35px;
+            border-radius: 50px; font-family: 'Permanent Marker', cursive;
+            font-size: 1.3rem; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
         }
-
+        .toggle-btn:hover { transform: translateY(-3px); background: var(--accent-color); color: white; }
         .instructions {
-            position: fixed;
-            bottom: 100px; /* Moved up slightly to avoid toggle button */
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255,255,255,0.8);
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-family: 'Indie Flower', cursive;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            pointer-events: none;
-            z-index: 90;
-            transition: opacity 0.3s;
+            position: absolute; bottom: 100px; width: 100%;
+            text-align: center; opacity: 0.8; font-size: 1.1rem;
+            text-shadow: 0 1px 2px white; transition: opacity 0.3s;
         }
 
-        /* Mobile Adjustments */
+        /* --- MOBILE TWEAKS --- */
         @media (max-width: 600px) {
-            .card-container { width: 160px; height: 200px; animation: float 4s ease-in-out infinite; }
-            .photo-frame { height: 100%; }
-            .title-header { font-size: 2rem; left: 15px; top: 15px; }
-            #story-bubble { width: 220px; left: 50%; top: 80px; transform: translateX(-50%) translateY(0) scale(0.98); }
-            #character-token { width: 72px; height: 72px; }
-            .view-toggle { padding: 12px 22px; font-size: 1rem; }
-            .nav-btn { padding: 10px 14px; font-size: 0.95rem; }
-            .instructions { bottom: 80px; padding: 6px 14px; }
-            .bg-doodle { opacity: 0.45; }
+            .header-title { font-size: 2rem; top: 15px; left: 15px; }
+            .card-container { width: 150px; height: 190px; }
+            .toggle-btn { padding: 10px 25px; font-size: 1.1rem; }
+            
+            /* Make bubble more compact on phone */
+            #story-bubble { width: 85vw; padding: 12px; }
+            #story-bubble img { max-height: 150px; }
+            #story-content { font-size: 0.95rem; }
+            
+            /* Adjust Map Canvas size for mobile smooth scrolling */
+            .map-canvas { width: 1200px; height: 1000px; }
+            svg.path-svg { width: 800px; height: 700px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- BACKGROUND DOODLES -->
     <div id="bg-doodle-layer"></div>
 
-    <div class="title-header">Happy Birthday!</div>
-    
-    <!-- DESK VIEW -->
-    <div id="desk">
-        <!-- Cards injected via JS -->
+    <div class="ui-layer">
+        <div class="header-title">Happy Birthday!</div>
+        <div class="instructions" id="desk-instr">✨ Drag photos • Double-click to flip ✨</div>
+        <div class="toggle-btn-container">
+            <button class="toggle-btn" onclick="toggleView()" id="main-btn">Start Journey 🗺️</button>
+        </div>
     </div>
 
-    <!-- JOURNEY VIEW -->
+    <div id="desk"></div>
+
     <div id="journey-view">
-        <div class="map-container">
-            <!-- Winding Path -->
-            <svg class="path-svg" viewBox="0 0 800 600" preserveAspectRatio="none">
-                <!-- Flatter, mostly-horizontal path with small up/down wiggles -->
-                <path id="walk-path" d="M 50 360 C 180 355, 340 365, 500 360 S 680 355, 750 365" />
-            </svg>
-            
-            <div id="milestones-container"></div>
+        <div class="map-container" id="map-container">
+            <div class="map-canvas">
+                <svg class="path-svg" viewBox="0 0 900 800" preserveAspectRatio="xMidYMid meet">
+                    <path id="walk-path" d="M 50 600 C 200 600, 200 450, 450 400 C 700 350, 700 200, 850 200" />
+                </svg>
+                
+                <div id="milestones-layer"></div>
 
-            <!-- Moving Character GIF -->
-            <div id="character-token">
-                <img src="387bb40f63c548a1923f4d721c6e1e48[1].png" alt="Walking Character">
-            </div>
+                <div id="character-token">
+                    <img src="387bb40f63c548a1923f4d721c6e1e48[1].png" alt="Character">
+                </div>
 
-            <!-- Dynamic Story Bubble (image-based) -->
-            <div id="story-bubble">
-                <!-- Image will be swapped dynamically -->
-                <img id="story-image" src="sfs.jpg" alt="Milestone image" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">
-                <p id="story-text" style="margin: 12px 0 0 0; padding: 0 10px; font-size: 1rem; color: #4a5568; line-height: 1.4;"></p>
-                <div class="nav-controls">
-                    <button id="btn-prev" class="nav-btn" onclick="prevMilestone()">❮ Back</button>
-                    <button id="btn-next" class="nav-btn" onclick="nextMilestone()">Next ❯</button>
+                <div id="story-bubble">
+                    <img id="bubble-img" src="" alt="Memory">
+                    <div id="story-content"></div>
+                    <div class="bubble-nav">
+                        <button class="nav-btn" id="btn-prev" onclick="moveStep(-1)">❮</button>
+                        <span class="step-counter" id="step-count">1 / 5</span>
+                        <button class="nav-btn" id="btn-next" onclick="moveStep(1)">❯</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="instructions" id="main-instructions">
-        ✨ Drag photos to scatter • Double-click to flip ✨
-    </div>
-
-    <!-- Bottom Toggle Button -->
-    <div class="view-toggle-container">
-        <button class="view-toggle" onclick="toggleView()">Start the Journey 🗺️</button>
-    </div>
-
     <script>
-        // --- DATA ---
         const memories = [
             { img: "1.png", note: "HARRY KI DIWALI" },
             { img: "2.png", note: "K-DRAMA SPOILER" },
-            { img: "3.png", note: "3" },
-            { img: "4.png", note: "4" },
-            { img: "5.png", note: "5" },
-            { img: "6.png", note: "6" }
+            { img: "3.png", note: "MEMORIES..." },
+            { img: "4.png", note: "SMILES" },
+            { img: "5.png", note: "FUN TIMES" },
+            { img: "6.png", note: "CELEBRATION" }
         ];
 
-        const journeyMilestones = [
-            { pct: 0, img: "sfs.jpg", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
-            Baat thi dasvi board ke pahale ki,<br>
-            Chal rahi thi hawa Snapchat use karne ki,<br>
-            Itna kuch moh tha nahi Snap se,<br>
-            Bas zarurat thi kuch bhejne ki.<br><br>
-            Phir dikhi ek story uss din,<br>
-            Likha hua "SFS" ek pic ke saath of malkin,<br>
-            Galti se gayi request accept ussi din,<br>
-            Magar dhyaan bhi nahi diya itna…<br>
-            Kaun jaanta tha badalne wala hai kuch agla din?
-        </span>`},
-            { pct: 25, img: "sanskrit.png", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
-        Phir ek din…!<br>
-        Dikhi Sanskrit ki woh kitaab,<br>
-        Maine bola, “Aree bhaishaab,<br>
-        Kuch toh baat hai sahab…<br>
-        Kahin hum dono ke hi same hi khwaab!?
-    </span>`},
-            { pct: 50, img: "call.png", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
-        Phir toh jo hui baate,<br>
-        Har din yũ baithe jaate dono nawabjaade,<br>
-        Haan, beech-beech me band ho gayi bahut baar,<br>
-        Magar jab hoti thi, toh khul jaati thi kitaabe…!
-    </span>`},
-            { pct: 75, img: "ghibli.jpg", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
-        Ab jab dooriyaan aayi hain,<br>
-        Dono ke hi jeevan me badlaav laayiii hain,<br>
-        Ho sakta hai na ho pehle waali baat ab,<br>
-        Magar duniya hi aisi hai,<br>
-        Jab zarurat ho… Bhagwan ne mulaqat karwaayi hai..!
-    </span>`},
-            { pct: 100, img: "bye.png", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
-        Happy Birthday, Nivi…<br>
-        Har baar aaj mere shabd ye gayenge,<br>
-        Aasha hai ek din Bhagwan khud mulaqat karwaayenge.<br>
-        Maaf kar dena… main hoon hi aisa,<br>
-        Na jaane ye aadat meri<br>
-        Kitne rishte ab aur tudwaayegi…
-    </span>` }
+        const journeyData = [
+             { img: "sfs.jpg", text: "Baat thi dasvi board ke pahale ki,<br>Chal rahi thi hawa Snapchat use karne ki,<br>Itna kuch moh tha nahi Snap se,<br>Bas zarurat thi kuch bhejne ki.<br><br>Phir dikhi ek story uss din,<br>Likha hua 'SFS' ek pic ke saath of malkin,<br>Galti se gayi request accept ussi din,<br>Magar dhyaan bhi nahi diya itna…<br>Kaun jaanta tha badalne wala hai kuch agla din?"},
+             { img: "sanskrit.png", text: "Phir ek din…!<br>Dikhi Sanskrit ki woh kitaab,<br>Maine bola, “Aree bhaishaab,<br>Kuch toh baat hai sahab…<br>Kahin hum dono ke hi same hi khwaab!?"},
+             { img: "call.png", text: "Phir toh jo hui baate,<br>Har din yũ baithe jaate dono nawabjaade,<br>Haan, beech-beech me band ho gayi bahut baar,<br>Magar jab hoti thi, toh khul jaati thi kitaabe…!"},
+             { img: "ghibli.jpg", text: "Ab jab dooriyaan aayi hain,<br>Dono ke hi jeevan me badlaav laayiii hain,<br>Ho sakta hai na ho pehle waali baat ab,<br>Magar duniya hi aisi hai,<br>Jab zarurat ho… Bhagwan ne mulaqat karwaayi hai..!"},
+             { img: "bye.png", text: "Happy Birthday, Nivi…<br>Har baar aaj mere shabd ye gayenge,<br>Aasha hai ek din Bhagwan khud mulaqat karwaayenge.<br>Maaf kar dena… main hoon hi aisa,<br>Na jaane ye aadat meri<br>Kitne rishte ab aur tudwaayegi…"}
         ];
 
-        // --- DOODLE ICON URLs ---
-        // Using high-quality doodle icons for the background
-        const doodleUrls = [
-            // Harry Potter Theme
+        const doodles = [
             "https://img.icons8.com/doodle/96/wizard-hat.png",
             "https://img.icons8.com/doodle/96/magic-wand.png",
-            "https://img.icons8.com/doodle/96/round-glasses.png",
-            
-            // One Piece / Pirate Theme
-            "https://img.icons8.com/doodle/96/skull-crossbones.png",
-            "https://img.icons8.com/doodle/96/treasure-map.png",
-            "https://img.icons8.com/doodle/96/sailing-ship-large.png", // Generic ship
-
-            // Kdrama / Korea Theme
             "https://img.icons8.com/doodle/96/south-korea.png",
-            "https://img.icons8.com/doodle/96/finger-heart.png", 
             "https://img.icons8.com/doodle/96/noodles.png",
-            "https://img.icons8.com/doodle/96/heart-with-arrow.png"
+            "https://img.icons8.com/doodle/96/sailing-ship-large.png"
         ];
 
-        let desk, journeyView, btnPrev, btnNext;
-        let highestZ = 10;
-        let currentMilestoneIndex = 0;
-        let isJourneyView = false;
+        let currentStep = 0;
+        let isJourneyActive = false;
+        let highestZ = 20;
 
         window.onload = () => {
-            desk = document.getElementById('desk');
-            journeyView = document.getElementById('journey-view');
-            btnPrev = document.getElementById('btn-prev');
-            btnNext = document.getElementById('btn-next');
-            
-            initBackgroundDoodles();
-            initCards();
-            initJourney();
-            // Give initial layout a little breathing room before fireworks
-            setTimeout(bigCelebration, 1200);
+            initBackground();
+            initDesk();
+            initJourneyMap();
+            setTimeout(doConfetti, 1000);
         };
 
-        // --- BACKGROUND DOODLES LOGIC ---
-        function initBackgroundDoodles() {
+        function initBackground() {
             const container = document.getElementById('bg-doodle-layer');
-            const count = 25; // Number of doodles to scatter
-
-            for (let i = 0; i < count; i++) {
+            for(let i=0; i<20; i++) {
                 const img = document.createElement('img');
-                // Pick random icon
-                img.src = doodleUrls[Math.floor(Math.random() * doodleUrls.length)];
-                img.classList.add('bg-doodle');
-                
-                // Random positioning
-                const x = Math.random() * 100; // vw
-                const y = Math.random() * 100; // vh
-                const rot = (Math.random() * 360); // degrees
-                const size = 40 + Math.random() * 60; // 40px to 100px
-
-                img.style.left = `${x}vw`;
-                img.style.top = `${y}vh`;
-                img.style.transform = `rotate(${rot}deg)`;
-                img.style.width = `${size}px`;
-                
+                img.src = doodles[i % doodles.length];
+                img.className = 'bg-doodle';
+                img.style.left = Math.random()*100 + 'vw';
+                img.style.top = Math.random()*100 + 'vh';
+                img.style.transform = `rotate(${Math.random()*360}deg)`;
+                img.style.width = (40 + Math.random()*40) + 'px';
                 container.appendChild(img);
             }
         }
 
-        // --- SCRAPBOOK LOGIC ---
-        function initCards() {
-            if (!desk) return;
-            memories.forEach((memory, index) => {
+        function initDesk() {
+            const desk = document.getElementById('desk');
+            memories.forEach((mem, i) => {
                 const card = document.createElement('div');
-                card.classList.add('card-container');
-
-                // Responsive layout: compact grid on small screens, circular spread on desktop
-                let x, y, randomRot = (Math.random() * 20) - 10, delayFactor = index * 0.12;
-                if (window.innerWidth <= 600) {
-                    const cols = 2;
-                    const cardW = 160;
-                    const cardH = 200;
-                    const gap = 14;
-                    const totalW = cols * cardW + (cols - 1) * gap;
-                    const startX = Math.max(12, (window.innerWidth - totalW) / 2);
-                    const col = index % cols;
-                    const row = Math.floor(index / cols);
-                    x = startX + col * (cardW + gap);
-                    y = 120 + row * (cardH + gap);
-                    randomRot = (Math.random() * 12) - 6;
+                card.className = 'card-container';
+                const isMobile = window.innerWidth < 600;
+                let x, y, rot;
+                if(isMobile) {
+                    const col = i % 2;
+                    const row = Math.floor(i / 2);
+                    x = 20 + col * 170; y = 100 + row * 210;
+                    rot = Math.random()*10 - 5;
                 } else {
-                    const centerX = window.innerWidth / 2;
-                    const centerY = window.innerHeight / 2;
-                    const angle = (index / memories.length) * Math.PI * 2;
-                    const radius = Math.min(280, Math.max(160, window.innerWidth * 0.18));
-                    x = centerX + Math.cos(angle) * radius - 120;
-                    y = centerY + Math.sin(angle) * radius - 140;
+                    x = (window.innerWidth/2 - 110) + (Math.random()*300 - 150);
+                    y = (window.innerHeight/2 - 130) + (Math.random()*200 - 100);
+                    rot = Math.random()*30 - 15;
                 }
-
-                card.style.left = `${x}px`;
-                card.style.top = `${y}px`;
-                card.style.transform = `rotate(${randomRot}deg)`;
-                card.style.zIndex = index + 1;
-                card.style.animationDelay = `${delayFactor}s`;
-
+                card.style.left = x + 'px'; card.style.top = y + 'px';
+                card.style.transform = `rotate(${rot}deg)`; card.style.zIndex = i + 1;
                 card.innerHTML = `
-                    <div class="tape color-${(index % 4) + 1}"></div>
+                    <div class="tape"></div>
                     <div class="card-inner">
                         <div class="card-front">
-                            <div class="photo-frame"><img src="${memory.img}" draggable="false"></div>
+                            <div class="photo-frame"><img src="${mem.img}" draggable="false"></div>
                         </div>
                         <div class="card-back">
-                            <div class="handwritten-note">${index + 1}</div>
+                            <div class="handwritten-note">${mem.note}</div>
                         </div>
-                    </div>
-                `;
-
-                addDragFunctionality(card);
-                card.addEventListener('dblclick', () => {
-                    card.classList.toggle('flipped');
-                    triggerMiniConfetti(card);
-                });
-                card.addEventListener('mousedown', () => bringToFront(card));
-                card.addEventListener('touchstart', () => bringToFront(card));
+                    </div>`;
+                card.addEventListener('mousedown', () => card.style.zIndex = ++highestZ);
+                card.addEventListener('touchstart', () => card.style.zIndex = ++highestZ);
+                card.addEventListener('dblclick', () => { card.classList.toggle('flipped'); doMiniConfetti(card); });
+                makeDraggable(card);
                 desk.appendChild(card);
             });
         }
 
-        function bringToFront(el) { el.style.zIndex = ++highestZ; }
-
-        function addDragFunctionality(el) {
+        function makeDraggable(el) {
             let isDragging = false, startX, startY, initialLeft, initialTop;
-            
-            const startDrag = (x, y) => {
-                isDragging = true;
-                startX = x; startY = y;
+            const start = (cx, cy) => {
+                isDragging = true; startX = cx; startY = cy;
                 initialLeft = el.offsetLeft; initialTop = el.offsetTop;
-                el.style.cursor = 'grabbing';
-                el.style.transition = 'none';
+                el.style.transition = 'none'; el.style.cursor = 'grabbing';
             };
-
-            const moveDrag = (x, y) => {
-                if (!isDragging) return;
-                el.style.left = `${initialLeft + (x - startX)}px`;
-                el.style.top = `${initialTop + (y - startY)}px`;
+            const move = (cx, cy) => {
+                if(!isDragging) return;
+                el.style.left = (initialLeft + (cx - startX)) + 'px';
+                el.style.top = (initialTop + (cy - startY)) + 'px';
             };
-
-            const endDrag = () => {
-                if (isDragging) {
-                    isDragging = false;
-                    el.style.cursor = 'grab';
-                    el.style.transition = 'transform 0.1s ease-out, box-shadow 0.3s';
-                }
-            };
-
-            el.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
-            window.addEventListener('mousemove', (e) => { e.preventDefault(); moveDrag(e.clientX, e.clientY); });
-            window.addEventListener('mouseup', endDrag);
-
-            el.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientX, e.touches[0].clientY));
-            window.addEventListener('touchmove', (e) => moveDrag(e.touches[0].clientX, e.touches[0].clientY), {passive: false});
-            window.addEventListener('touchend', endDrag);
+            const end = () => { isDragging = false; el.style.transition = 'transform 0.1s'; el.style.cursor = 'grab'; };
+            el.addEventListener('mousedown', e => start(e.clientX, e.clientY));
+            window.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+            window.addEventListener('mouseup', end);
+            el.addEventListener('touchstart', e => start(e.touches[0].clientX, e.touches[0].clientY));
+            window.addEventListener('touchmove', e => { if(isDragging) e.preventDefault(); move(e.touches[0].clientX, e.touches[0].clientY); }, {passive:false});
+            window.addEventListener('touchend', end);
         }
 
-        // --- JOURNEY LOGIC ---
         function toggleView() {
-            isJourneyView = !isJourneyView;
-            const toggleBtn = document.querySelector('.view-toggle');
-            const instr = document.getElementById('main-instructions');
-
-            if (isJourneyView) {
+            const desk = document.getElementById('desk');
+            const journey = document.getElementById('journey-view');
+            const btn = document.getElementById('main-btn');
+            const instr = document.getElementById('desk-instr');
+            isJourneyActive = !isJourneyActive;
+            if(isJourneyActive) {
                 desk.classList.add('inactive');
-                journeyView.classList.add('active');
-                toggleBtn.innerText = "Back to Scrapbook 📸";
-                instr.style.opacity = '0';
-                updateCharacterPos(currentMilestoneIndex); // Initial position
+                journey.classList.add('active');
+                btn.innerText = "Back to Scrapbook 📸";
+                instr.style.opacity = 0;
+                updateJourneyState(currentStep);
             } else {
                 desk.classList.remove('inactive');
-                journeyView.classList.remove('active');
-                toggleBtn.innerText = "Start the Journey 🗺️";
-                instr.style.opacity = '1';
+                journey.classList.remove('active');
+                btn.innerText = "Start Journey 🗺️";
+                instr.style.opacity = 1;
             }
         }
 
-        function initJourney() {
+        function initJourneyMap() {
             const path = document.getElementById('walk-path');
-            const container = document.getElementById('milestones-container');
-            if (!path || !container) return;
+            const layer = document.getElementById('milestones-layer');
             const len = path.getTotalLength();
+            const canvas = document.querySelector('.map-canvas');
+            
+            // Adjust offsets based on the SVG viewBox size (900x800)
+            const offsetX = 450; // half of 900
+            const offsetY = 400; // half of 800
 
-            journeyMilestones.forEach(m => {
-                const p = path.getPointAtLength(len * (m.pct / 100));
+            journeyData.forEach((_, idx) => {
+                const pt = path.getPointAtLength((idx / (journeyData.length - 1)) * len);
                 const dot = document.createElement('div');
                 dot.className = 'milestone-dot';
-                dot.style.left = p.x + 'px';
-                dot.style.top = p.y + 'px';
-                container.appendChild(dot);
+                dot.style.left = `calc(50% - ${offsetX}px + ${pt.x}px)`;
+                dot.style.top = `calc(50% - ${offsetY}px + ${pt.y}px)`;
+                canvas.appendChild(dot);
             });
         }
 
-        function nextMilestone() {
-            if (currentMilestoneIndex < journeyMilestones.length - 1) {
-                currentMilestoneIndex++;
-                updateCharacterPos(currentMilestoneIndex);
+        function moveStep(dir) {
+            const next = currentStep + dir;
+            if(next >= 0 && next < journeyData.length) {
+                currentStep = next;
+                updateJourneyState(currentStep);
             }
         }
 
-        function prevMilestone() {
-            if (currentMilestoneIndex > 0) {
-                currentMilestoneIndex--;
-                updateCharacterPos(currentMilestoneIndex);
-            }
-        }
-
-        function updateCharacterPos(index) {
+        function updateJourneyState(index) {
             const path = document.getElementById('walk-path');
             const token = document.getElementById('character-token');
             const bubble = document.getElementById('story-bubble');
-            
-            if (!path || !token) return;
+            const mapContainer = document.getElementById('map-container');
+            const canvas = document.querySelector('.map-canvas');
 
             const len = path.getTotalLength();
-            const milestone = journeyMilestones[index];
-            const p = path.getPointAtLength(len * (milestone.pct / 100));
+            const pt = path.getPointAtLength((index / (journeyData.length - 1)) * len);
+            
+            // SVG Offsets
+            const offsetX = 450; 
+            const offsetY = 400;
 
-            // Move Character
-            token.style.left = p.x + 'px';
-            token.style.top = p.y + 'px';
+            const xPos = `calc(50% - ${offsetX}px + ${pt.x}px)`;
+            const yPos = `calc(50% - ${offsetY}px + ${pt.y}px)`;
+            
+            token.style.left = xPos;
+            token.style.top = yPos;
 
-            // Ensure the milestone is visible: scroll the map container so the point is centered
-            const mapContainer = document.querySelector('.map-container');
-            if (mapContainer) {
-                // desired scroll positions to center point
-                const targetLeft = p.x - (mapContainer.clientWidth / 2);
-                const targetTop = p.y - (mapContainer.clientHeight / 2);
-
-                // clamp to valid scroll ranges
-                const maxLeft = Math.max(0, mapContainer.scrollWidth - mapContainer.clientWidth);
-                const maxTop = Math.max(0, mapContainer.scrollHeight - mapContainer.clientHeight);
-                const scrollLeft = Math.min(Math.max(0, targetLeft), maxLeft);
-                const scrollTop = Math.min(Math.max(0, targetTop), maxTop);
-
-                // Smoothly bring the milestone into view while the character moves
-                try {
-                    mapContainer.scrollTo({ left: scrollLeft, top: scrollTop, behavior: 'smooth' });
-                } catch (e) {
-                    // fallback for environments that don't support options
-                    mapContainer.scrollLeft = scrollLeft;
-                    mapContainer.scrollTop = scrollTop;
-                }
-            }
-
-            // Hide bubble briefly while moving
             bubble.classList.remove('visible');
-            // Clear manual transforms so CSS class takes over
-            bubble.style.transform = ''; 
 
-            // Update Bubble Content
+            // --- AUTO SCROLL FIX ---
             setTimeout(() => {
-                const imgEl = document.getElementById('story-image');
-                const textEl = document.getElementById('story-text').innerHTML = milestone.text;
+                // Determine pixel coordinates of the character relative to the canvas
+                const canvasW = canvas.offsetWidth;
+                const canvasH = canvas.offsetHeight;
+                
+                // The center of canvas
+                const centerX = canvasW / 2;
+                const centerY = canvasH / 2;
 
-                if (imgEl && milestone.img) {
-                    imgEl.src = milestone.img;
-                    imgEl.alt = 'Milestone ' + (index + 1);
-                }
-                if (textEl && milestone.text) {
-                    textEl.innerText = milestone.text;
-                }
+                // Character position relative to canvas center
+                const charRelX = pt.x - offsetX;
+                const charRelY = pt.y - offsetY;
 
-                // Ensure bubble remains fully visible in the scrollable map area
-                const mapContainerLocal = document.querySelector('.map-container');
-                const margin = 12;
-                if (mapContainerLocal) {
-                    const clientW = mapContainerLocal.clientWidth;
-                    const clientH = mapContainerLocal.clientHeight;
+                const charAbsX = centerX + charRelX;
+                const charAbsY = centerY + charRelY;
 
-                    // recompute target scroll (same logic used above)
-                    const targetLeft = p.x - (clientW / 2);
-                    const maxLeft = Math.max(0, mapContainerLocal.scrollWidth - clientW);
-                    const scrollLeftTarget = Math.min(Math.max(0, targetLeft), maxLeft);
+                // We want the CAMERA to center on a point slightly ABOVE the character
+                // so the bubble (which is above character) is fully visible.
+                // Shift target Y up by 150px
+                const targetY = charAbsY - 150; 
 
-                    // compute bubble width (estimate) - use 280 fallback
-                    const bubbleRect = bubble.getBoundingClientRect();
-                    const bubbleWidth = bubbleRect && bubbleRect.width ? bubbleRect.width : Math.min(300, clientW * 0.6);
-                    const bubbleHalf = bubbleWidth / 2;
+                const viewportW = mapContainer.clientWidth;
+                const viewportH = mapContainer.clientHeight;
 
-                    const minCenter = scrollLeftTarget + bubbleHalf + margin;
-                    const maxCenter = scrollLeftTarget + clientW - bubbleHalf - margin;
+                mapContainer.scrollTo({
+                    left: charAbsX - (viewportW / 2),
+                    top: targetY - (viewportH / 2),
+                    behavior: 'smooth'
+                });
+            }, 100);
 
-                    let centerX = p.x;
-                    if (centerX < minCenter) centerX = minCenter;
-                    if (centerX > maxCenter) centerX = maxCenter;
-
-                    bubble.style.left = centerX + 'px';
-
-                    // For Y, keep bubble above the token but avoid going off top
-                    let topY = p.y - 60;
-                    const minTop = (Math.max(0, mapContainerLocal.scrollTop) + margin + 8);
-                    if (topY < minTop) topY = minTop;
-                    bubble.style.top = topY + 'px';
-                } else {
-                    bubble.style.left = p.x + 'px';
-                    bubble.style.top = (p.y - 60) + 'px';
-                }
-
-                // The CSS 'visible' class now handles the transform (translateY -100%)
-                // This makes the bubble grow UPWARDS from this anchor point.
+            setTimeout(() => {
+                // Position Bubble:
+                // We offset the bubble position UP by 70px relative to the character
+                // so the "arrow" points to the head, not the feet.
+                // We use calc() in CSS for this.
+                bubble.style.left = xPos;
+                bubble.style.top = `calc(${yPos} - 70px)`; 
+                
+                const data = journeyData[index];
+                document.getElementById('bubble-img').src = data.img;
+                document.getElementById('story-content').innerHTML = data.text;
+                document.getElementById('step-count').innerText = `${index + 1} / ${journeyData.length}`;
+                document.getElementById('btn-prev').disabled = (index === 0);
+                document.getElementById('btn-next').disabled = (index === journeyData.length - 1);
+                
                 bubble.classList.add('visible');
-                updateNavButtons();
-            }, 3000); // Wait for character to arrive
+            }, 3000);
         }
 
-        function updateNavButtons() {
-            btnPrev.disabled = (currentMilestoneIndex === 0);
-            btnNext.disabled = (currentMilestoneIndex === journeyMilestones.length - 1);
-        }
-
-        // --- UTILS ---
-        function triggerMiniConfetti(el) {
-            if (typeof confetti !== 'function') return;
-            const r = el.getBoundingClientRect();
-            // gentler mini celebration: fewer particles and narrower spread
-            confetti({
-                particleCount: 12, spread: 40,
-                origin: { x: (r.left + r.width/2)/window.innerWidth, y: (r.top + r.height/2)/window.innerHeight },
-                zIndex: highestZ + 50,
-                ticks: 120
-            });
-        }
-        
-        function bigCelebration() {
-            if (typeof confetti !== 'function') return;
-            // Slower, gentler celebration: bursts every 400ms for 5.5s
-            const duration = 5500;
-            const endTime = Date.now() + duration;
-            const interval = setInterval(() => {
-                const timeLeft = endTime - Date.now();
-                if (timeLeft <= 0) { clearInterval(interval); return; }
-
-                const originLeft = Math.random() * 0.4 + 0.05; // random x near left
-                const originRight = Math.random() * 0.4 + 0.55; // random x near right
-
-                confetti({ particleCount: 8, angle: 60, spread: 40, origin: { x: originLeft, y: 0.1 }, zIndex: 9999, ticks: 200 });
-                confetti({ particleCount: 8, angle: 120, spread: 40, origin: { x: originRight, y: 0.1 }, zIndex: 9999, ticks: 200 });
-            }, 400);
+        function doConfetti() { confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); }
+        function doMiniConfetti(el) {
+            const rect = el.getBoundingClientRect();
+            const x = (rect.left + rect.width/2) / window.innerWidth;
+            const y = (rect.top + rect.height/2) / window.innerHeight;
+            confetti({ particleCount: 30, spread: 50, origin: { x, y }, ticks: 60, zIndex: 999 });
         }
     </script>
 </body>
