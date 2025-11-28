@@ -201,6 +201,7 @@
             justify-content: center;
             align-items: center;
             background-color: rgba(234, 221, 207, 0.95);
+            overflow: hidden;
         }
 
         #journey-view.active {
@@ -276,58 +277,71 @@
             z-index: 10;
         }
 
-        /* Dynamic Story Bubble */
-        #story-bubble {
-            position: absolute;
-            width: 280px;
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            font-family: 'Indie Flower', cursive;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 40;
-            text-align: center;
-            
-            /* TRANSFORM SETUP */
-            /* Anchor bottom-center and start slightly smaller */
-            transform: translateX(-50%) translateY(-100%) scale(0.9);
-            transform-origin: bottom center;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        
-        #story-bubble::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 10px 10px 0;
-            border-style: solid;
-            border-color: white transparent transparent transparent;
-        }
+    /* Journey View must fly above the desk */
+#journey-view.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1000 !important;   /* <-- FIX */
+}
 
-        #story-bubble.visible {
-            opacity: 1;
-            pointer-events: auto;
-            /* Pop to full size, keeping the translate anchor */
-            transform: translateX(-50%) translateY(-100%) scale(1);
-        }
+/* Story bubble must stay above EVERYTHING */
+#story-bubble {
+    position: absolute;
+    width: 220px;
+    max-height: 350px;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    font-family: 'Indie Flower', cursive;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2000 !important;  /* <-- FIX */
+    text-align: center;
 
-        #story-bubble h3 {
-            margin: 0 0 10px 0;
-            font-family: 'Permanent Marker', cursive;
-            color: var(--accent-color);
-            font-size: 1.6rem;
-        }
+    overflow-y: auto;
+    scrollbar-width: none;
+    transform: translateX(-50%) translateY(-100%) scale(0.9);
+    transform-origin: bottom center;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-        #story-bubble p {
-            font-size: 1.1rem;
-            color: #4a5568;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
+#story-bubble::-webkit-scrollbar {
+    display: none;
+}
+
+#story-bubble.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(-50%) translateY(-100%) scale(1);
+}
+
+#story-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px 8px 0;
+    border-style: solid;
+    border-color: white transparent transparent transparent;
+}
+
+#story-bubble h3 {
+    margin: 0 0 8px 0;
+    font-family: 'Permanent Marker', cursive;
+    color: var(--accent-color);
+    font-size: 1.4rem;
+}
+
+#story-bubble p,
+#story-bubble span {
+    font-size: 0.9rem;
+    color: #4a5568;
+    line-height: 1.3;
+}
+
+
 
         /* Navigation Buttons */
         .nav-controls {
@@ -457,8 +471,8 @@
         <div class="map-container">
             <!-- Winding Path -->
             <svg class="path-svg" viewBox="0 0 800 600" preserveAspectRatio="none">
-                <!-- Lowered path to give room for the bubble on top -->
-                <path id="walk-path" d="M 50 520 C 150 520, 150 350, 400 350 S 650 450, 750 250" />
+                <!-- Flatter, mostly-horizontal path with small up/down wiggles -->
+                <path id="walk-path" d="M 50 360 C 180 355, 340 365, 500 360 S 680 355, 750 365" />
             </svg>
             
             <div id="milestones-container"></div>
@@ -468,10 +482,11 @@
                 <img src="387bb40f63c548a1923f4d721c6e1e48[1].png" alt="Walking Character">
             </div>
 
-            <!-- Dynamic Story Bubble -->
+            <!-- Dynamic Story Bubble (image-based) -->
             <div id="story-bubble">
-                <h3 id="story-title">Year 1</h3>
-                <p id="story-text">The beginning...</p>
+                <!-- Image will be swapped dynamically -->
+                <img id="story-image" src="sfs.jpg" alt="Milestone image" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">
+                <p id="story-text" style="margin: 12px 0 0 0; padding: 0 10px; font-size: 1rem; color: #4a5568; line-height: 1.4;"></p>
                 <div class="nav-controls">
                     <button id="btn-prev" class="nav-btn" onclick="prevMilestone()">❮ Back</button>
                     <button id="btn-next" class="nav-btn" onclick="nextMilestone()">Next ❯</button>
@@ -492,8 +507,8 @@
     <script>
         // --- DATA ---
         const memories = [
-            { img: "1.png", note: "1" },
-            { img: "2.png", note: "2" },
+            { img: "1.png", note: "HARRY KI DIWALI" },
+            { img: "2.png", note: "K-DRAMA SPOILER" },
             { img: "3.png", note: "3" },
             { img: "4.png", note: "4" },
             { img: "5.png", note: "5" },
@@ -501,11 +516,45 @@
         ];
 
         const journeyMilestones = [
-            { pct: 0, title: "Level 1: Start", text: "The legend was born! A star entered the world." },
-            { pct: 25, title: "The Early Days", text: "Learning to walk, talk, and creating beautiful chaos." },
-            { pct: 50, title: "School Times", text: "Meeting us (the best part), and surviving exams." },
-            { pct: 75, title: "Big Steps", text: "First jobs, big dreams, and adulting (kind of)." },
-            { pct: 100, title: "Today", text: "Celebrating YOU and the amazing road ahead!" }
+            { pct: 0, img: "sfs.jpg", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
+            Baat thi dasvi board ke pahale ki,<br>
+            Chal rahi thi hawa Snapchat use karne ki,<br>
+            Itna kuch moh tha nahi Snap se,<br>
+            Bas zarurat thi kuch bhejne ki.<br><br>
+            Phir dikhi ek story uss din,<br>
+            Likha hua "SFS" ek pic ke saath of malkin,<br>
+            Galti se gayi request accept ussi din,<br>
+            Magar dhyaan bhi nahi diya itna…<br>
+            Kaun jaanta tha badalne wala hai kuch agla din?
+        </span>`},
+            { pct: 25, img: "sanskrit.png", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
+        Phir ek din…!<br>
+        Dikhi Sanskrit ki woh kitaab,<br>
+        Maine bola, “Aree bhaishaab,<br>
+        Kuch toh baat hai sahab…<br>
+        Kahin hum dono ke hi same hi khwaab!?
+    </span>`},
+            { pct: 50, img: "call.png", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
+        Phir toh jo hui baate,<br>
+        Har din yũ baithe jaate dono nawabjaade,<br>
+        Haan, beech-beech me band ho gayi bahut baar,<br>
+        Magar jab hoti thi, toh khul jaati thi kitaabe…!
+    </span>`},
+            { pct: 75, img: "ghibli.jpg", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
+        Ab jab dooriyaan aayi hain,<br>
+        Dono ke hi jeevan me badlaav laayiii hain,<br>
+        Ho sakta hai na ho pehle waali baat ab,<br>
+        Magar duniya hi aisi hai,<br>
+        Jab zarurat ho… Bhagwan ne mulaqat karwaayi hai..!
+    </span>`},
+            { pct: 100, img: "bye.png", text: `<span style="font-size: 1rem; line-height: 1.2; display: block; text-align: center;">
+        Happy Birthday, Nivi…<br>
+        Har baar aaj mere shabd ye gayenge,<br>
+        Aasha hai ek din Bhagwan khud mulaqat karwaayenge.<br>
+        Maaf kar dena… main hoon hi aisa,<br>
+        Na jaane ye aadat meri<br>
+        Kitne rishte ab aur tudwaayegi…
+    </span>` }
         ];
 
         // --- DOODLE ICON URLs ---
@@ -762,15 +811,53 @@
 
             // Update Bubble Content
             setTimeout(() => {
-                document.getElementById('story-title').innerText = milestone.title;
-                document.getElementById('story-text').innerText = milestone.text;
-                
-                // Position Bubble ABOVE character
-                // Character is 100px tall (radius 50px).
-                // We set top to (p.y - 60) to give 10px buffer above head.
-                bubble.style.left = p.x + 'px';
-                bubble.style.top = (p.y - 60) + 'px'; 
-                
+                const imgEl = document.getElementById('story-image');
+                const textEl = document.getElementById('story-text').innerHTML = milestone.text;
+
+                if (imgEl && milestone.img) {
+                    imgEl.src = milestone.img;
+                    imgEl.alt = 'Milestone ' + (index + 1);
+                }
+                if (textEl && milestone.text) {
+                    textEl.innerText = milestone.text;
+                }
+
+                // Ensure bubble remains fully visible in the scrollable map area
+                const mapContainerLocal = document.querySelector('.map-container');
+                const margin = 12;
+                if (mapContainerLocal) {
+                    const clientW = mapContainerLocal.clientWidth;
+                    const clientH = mapContainerLocal.clientHeight;
+
+                    // recompute target scroll (same logic used above)
+                    const targetLeft = p.x - (clientW / 2);
+                    const maxLeft = Math.max(0, mapContainerLocal.scrollWidth - clientW);
+                    const scrollLeftTarget = Math.min(Math.max(0, targetLeft), maxLeft);
+
+                    // compute bubble width (estimate) - use 280 fallback
+                    const bubbleRect = bubble.getBoundingClientRect();
+                    const bubbleWidth = bubbleRect && bubbleRect.width ? bubbleRect.width : Math.min(300, clientW * 0.6);
+                    const bubbleHalf = bubbleWidth / 2;
+
+                    const minCenter = scrollLeftTarget + bubbleHalf + margin;
+                    const maxCenter = scrollLeftTarget + clientW - bubbleHalf - margin;
+
+                    let centerX = p.x;
+                    if (centerX < minCenter) centerX = minCenter;
+                    if (centerX > maxCenter) centerX = maxCenter;
+
+                    bubble.style.left = centerX + 'px';
+
+                    // For Y, keep bubble above the token but avoid going off top
+                    let topY = p.y - 60;
+                    const minTop = (Math.max(0, mapContainerLocal.scrollTop) + margin + 8);
+                    if (topY < minTop) topY = minTop;
+                    bubble.style.top = topY + 'px';
+                } else {
+                    bubble.style.left = p.x + 'px';
+                    bubble.style.top = (p.y - 60) + 'px';
+                }
+
                 // The CSS 'visible' class now handles the transform (translateY -100%)
                 // This makes the bubble grow UPWARDS from this anchor point.
                 bubble.classList.add('visible');
