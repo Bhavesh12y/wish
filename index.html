@@ -116,11 +116,9 @@
         }
         .map-container::-webkit-scrollbar { display: none; }
 
-        /* Canvas size determines scroll area */
         .map-canvas {
             position: relative;
             min-width: 100vw; min-height: 100vh;
-            /* Extra padding to ensure we can scroll everywhere */
             width: 1500px; height: 1200px; 
             display: flex; align-items: center; justify-content: center;
         }
@@ -129,12 +127,12 @@
         svg.path-svg {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 900px; height: 800px; /* Matched to viewBox */
+            width: 900px; height: 800px; /* ViewBox Size */
             overflow: visible; z-index: 51;
         }
         path#walk-path {
             fill: none; stroke: #cbd5e0; stroke-width: 8;
-            stroke-dasharray: 20, 15; stroke-linecap: round;
+            stroke-dasharray: 20, 15; stroke-linecap: round; stroke-linejoin: round;
         }
 
         /* Character */
@@ -167,17 +165,14 @@
             font-family: 'Patrick Hand', cursive;
             z-index: 70; text-align: center;
             opacity: 0; pointer-events: none;
-            /* Start slightly lower for animation */
             transform: translate(-50%, -80%) scale(0.9);
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
             transform-origin: bottom center;
         }
         #story-bubble.visible {
             opacity: 1; pointer-events: auto;
-            /* Translate -100% Y anchors the bottom of bubble to the top of character */
             transform: translate(-50%, -100%) scale(1);
         }
-        /* Arrow */
         #story-bubble::after {
             content: ''; position: absolute;
             bottom: -10px; left: 50%; transform: translateX(-50%);
@@ -238,13 +233,9 @@
             .header-title { font-size: 2rem; top: 15px; left: 15px; }
             .card-container { width: 150px; height: 190px; }
             .toggle-btn { padding: 10px 25px; font-size: 1.1rem; }
-            
-            /* Make bubble more compact on phone */
             #story-bubble { width: 85vw; padding: 12px; }
             #story-bubble img { max-height: 150px; }
             #story-content { font-size: 0.95rem; }
-            
-            /* Adjust Map Canvas size for mobile smooth scrolling */
             .map-canvas { width: 1200px; height: 1000px; }
             svg.path-svg { width: 800px; height: 700px; }
         }
@@ -268,7 +259,8 @@
         <div class="map-container" id="map-container">
             <div class="map-canvas">
                 <svg class="path-svg" viewBox="0 0 900 800" preserveAspectRatio="xMidYMid meet">
-                    <path id="walk-path" d="M 50 600 C 200 600, 200 450, 450 400 C 700 350, 700 200, 850 200" />
+                    <path id="walk-path" d="M 50 500 C 200 300, 300 700, 400 500 S 650 300, 750 500
+" />
                 </svg>
                 
                 <div id="milestones-layer"></div>
@@ -301,7 +293,7 @@
         ];
 
         const journeyData = [
-             { img: "sfs.jpg", text: "Baat thi dasvi board ke pahale ki,<br>Chal rahi thi hawa Snapchat use karne ki,<br>Itna kuch moh tha nahi Snap se,<br>Bas zarurat thi kuch bhejne ki.<br><br>Phir dikhi ek story uss din,<br>Likha hua 'SFS' ek pic ke saath of malkin,<br>Galti se gayi request accept ussi din,<br>Magar dhyaan bhi nahi diya itna…<br>Kaun jaanta tha badalne wala hai kuch agla din?"},
+             { img: "sfs.jpg", text: "Baat thi dasvi board ke pahale ki,<br>Chal rahi thi hawa Snapchat use karne ki,<br>Phir dikhi ek story uss din,<br>Likha hua 'SFS' ek pic ke saath of malkin,<br>Galti se gayi request accept ussi din,<br>Magar dhyaan bhi nahi diya itna…<br>Kaun jaanta tha badalne wala hai kuch agla din?"},
              { img: "sanskrit.png", text: "Phir ek din…!<br>Dikhi Sanskrit ki woh kitaab,<br>Maine bola, “Aree bhaishaab,<br>Kuch toh baat hai sahab…<br>Kahin hum dono ke hi same hi khwaab!?"},
              { img: "call.png", text: "Phir toh jo hui baate,<br>Har din yũ baithe jaate dono nawabjaade,<br>Haan, beech-beech me band ho gayi bahut baar,<br>Magar jab hoti thi, toh khul jaati thi kitaabe…!"},
              { img: "ghibli.jpg", text: "Ab jab dooriyaan aayi hain,<br>Dono ke hi jeevan me badlaav laayiii hain,<br>Ho sakta hai na ho pehle waali baat ab,<br>Magar duniya hi aisi hai,<br>Jab zarurat ho… Bhagwan ne mulaqat karwaayi hai..!"},
@@ -426,8 +418,8 @@
             const canvas = document.querySelector('.map-canvas');
             
             // Adjust offsets based on the SVG viewBox size (900x800)
-            const offsetX = 450; // half of 900
-            const offsetY = 400; // half of 800
+            const offsetX = 450; 
+            const offsetY = 400;
 
             journeyData.forEach((_, idx) => {
                 const pt = path.getPointAtLength((idx / (journeyData.length - 1)) * len);
@@ -457,7 +449,6 @@
             const len = path.getTotalLength();
             const pt = path.getPointAtLength((index / (journeyData.length - 1)) * len);
             
-            // SVG Offsets
             const offsetX = 450; 
             const offsetY = 400;
 
@@ -469,26 +460,18 @@
 
             bubble.classList.remove('visible');
 
-            // --- AUTO SCROLL FIX ---
+            // --- AUTO SCROLL ---
             setTimeout(() => {
-                // Determine pixel coordinates of the character relative to the canvas
                 const canvasW = canvas.offsetWidth;
                 const canvasH = canvas.offsetHeight;
-                
-                // The center of canvas
                 const centerX = canvasW / 2;
                 const centerY = canvasH / 2;
-
-                // Character position relative to canvas center
                 const charRelX = pt.x - offsetX;
                 const charRelY = pt.y - offsetY;
-
                 const charAbsX = centerX + charRelX;
                 const charAbsY = centerY + charRelY;
 
-                // We want the CAMERA to center on a point slightly ABOVE the character
-                // so the bubble (which is above character) is fully visible.
-                // Shift target Y up by 150px
+                // Center camera slightly ABOVE character
                 const targetY = charAbsY - 150; 
 
                 const viewportW = mapContainer.clientWidth;
@@ -502,10 +485,7 @@
             }, 100);
 
             setTimeout(() => {
-                // Position Bubble:
-                // We offset the bubble position UP by 70px relative to the character
-                // so the "arrow" points to the head, not the feet.
-                // We use calc() in CSS for this.
+                // Position Bubble 70px above character
                 bubble.style.left = xPos;
                 bubble.style.top = `calc(${yPos} - 70px)`; 
                 
